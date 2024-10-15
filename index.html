@@ -1,78 +1,60 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuage de Mots Clés Rétro Gaming</title>
-    <!-- Google Fonts pour la police rétro -->
+    <title>Nuage de Mots Clés avec GSAP et D3.js</title>
+
+    <!-- Google Font pour le style rétro -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <!-- Styles CSS -->
+
+    <!-- GSAP pour les animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- D3.js pour manipuler le DOM SVG -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Styles -->
     <style>
         body {
-            margin: 0;
-            background-color: #000;
-            color: #fff;
+            background-color: #111;
+            color: white;
             font-family: 'Press Start 2P', cursive;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
+            margin: 0;
             overflow: hidden;
         }
 
         #cloud-container {
-            width: 100%;
-            height: 80vh;
-        }
-
-        #hover-squares {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
+            background-color: black;
+            border: 2px solid #0ff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
         }
 
         .hover-square {
-            width: 60px;
-            height: 60px;
-            background-color: #1a1a1a;
-            margin: 0 10px;
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background-color: #222;
+            margin: 10px;
             border: 2px solid #0ff;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-            box-sizing: border-box;
-            position: relative;
-        }
-
-        .hover-square::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border: 2px solid #0ff;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .hover-square:hover {
             transform: scale(1.1);
-            background-color: #333;
-        }
-
-        .hover-square:hover::before {
-            opacity: 1;
+            box-shadow: 0 0 10px #0ff;
         }
 
         text {
-            font-family: 'Press Start 2P', cursive;
+            font-family: 'Press Start 2P', cursive; /* Style rétro */
             fill: #0ff;
             font-size: 20px;
-            cursor: default;
-            user-select: none;
-            transition: transform 0.3s, filter 0.3s;
+            filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.8));
         }
 
         line {
@@ -80,15 +62,15 @@
             stroke-width: 1;
         }
 
-        /* Effet de surbrillance */
-        .highlighted {
-            filter: drop-shadow(0 0 10px #fff);
+        #hover-squares {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Conteneur SVG pour le nuage de mots clés -->
-    <svg id="cloud-container"></svg>
+
+    <!-- Conteneur pour le nuage de mots-clés -->
+    <svg id="cloud-container" width="1280" height="1024"></svg>
 
     <!-- Carrés interactifs -->
     <div id="hover-squares">
@@ -99,115 +81,91 @@
         <div class="hover-square"></div>
     </div>
 
-    <!-- Inclusion des bibliothèques D3.js et GSAP via CDN -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-    <!-- Script JavaScript -->
+    <!-- Script pour les animations et les interactions -->
     <script>
-        // Liste des mots-clés
         const keywords = ['cloud', 'devops', 'dev front', 'dev back', 'agilité', 'craft', 'architecture', 'mobile', 'sécurité'];
+        const svg = d3.select("#cloud-container");
 
-        // Sélection du conteneur SVG
-        const svg = d3.select("#cloud-container")
-            .attr("width", window.innerWidth)
-            .attr("height", window.innerHeight * 0.8)
-            .style("background-color", "#000");
+        // Crée un maillage lumineux en arrière-plan avec rotation aléatoire
+        const lines = [];
+        for (let i = 0; i < 50; i++) {
+            const line = svg.append("line")
+                .attr("x1", Math.random() * 1280)
+                .attr("y1", Math.random() * 1024)
+                .attr("x2", Math.random() * 1280)
+                .attr("y2", Math.random() * 1024)
+                .style("stroke", "rgba(0, 255, 255, 0.2)");
 
-        // Génération d'un maillage de filaments lumineux
-        const numLines = 150; // Nombre de lignes pour le maillage
-        for (let i = 0; i < numLines; i++) {
-            svg.append("line")
-                .attr("x1", Math.random() * window.innerWidth)
-                .attr("y1", Math.random() * window.innerHeight * 0.8)
-                .attr("x2", Math.random() * window.innerWidth)
-                .attr("y2", Math.random() * window.innerHeight * 0.8)
-                .style("stroke", "rgba(0, 255, 255, 0.1)")
-                .style("stroke-width", 1)
-                .style("opacity", Math.random());
+            lines.push(line);
         }
 
-        // Placement des mots-clés
-        const wordElements = svg.selectAll("text")
-            .data(keywords)
-            .enter()
-            .append("text")
-            .attr("x", () => Math.random() * (window.innerWidth - 100) + 50) // Marges pour éviter les bords
-            .attr("y", () => Math.random() * (window.innerHeight * 0.8 - 50) + 50)
-            .text(d => d)
-            .style("fill", "#0ff")
-            .style("font-size", "20px")
-            .style("filter", "drop-shadow(0 0 5px rgba(0, 255, 255, 0.8))");
+        // Anime les lignes avec une rotation lente et aléatoire
+        lines.forEach((line) => {
+            gsap.to(line.node(), {
+                rotation: Math.random() * 360,
+                transformOrigin: "50% 50%",
+                duration: 40 + Math.random() * 20,
+                repeat: -1,
+                ease: "linear"
+            });
+        });
 
-        // Connexion des mots-clés avec des lignes lumineuses
-        for (let i = 0; i < keywords.length; i++) {
-            for (let j = i + 1; j < keywords.length; j++) {
-                svg.append("line")
-                    .attr("x1", parseFloat(wordElements.nodes()[i].getAttribute("x")))
-                    .attr("y1", parseFloat(wordElements.nodes()[i].getAttribute("y")))
-                    .attr("x2", parseFloat(wordElements.nodes()[j].getAttribute("x")))
-                    .attr("y2", parseFloat(wordElements.nodes()[j].getAttribute("y")))
-                    .style("stroke", "rgba(0, 255, 255, 0.3)")
-                    .style("stroke-width", 1)
-                    .style("opacity", 0.2);
-            }
-        }
+        // Place les mots-clés avec une animation de flottement
+        const words = [];
+        keywords.forEach((word, i) => {
+            const x = Math.random() * 1024;
+            const y = Math.random() * 768;
+            
+            const text = svg.append("text")
+                .attr("x", x)
+                .attr("y", y)
+                .text(word)
+                .style("fill", "#0ff")
+                .style("font-size", "20px")
+                .style("filter", "drop-shadow(0 0 5px rgba(0, 255, 255, 0.8))");
 
-        // Fonction pour sélectionner aléatoirement un pourcentage des mots
-        function getRandomWords(percent = 0.3) {
-            return wordElements.filter(() => Math.random() < percent);
-        }
+            words.push({ text: text, x: x, y: y });
+        });
 
-        // Gestion des interactions avec les carrés
-        const squares = document.querySelectorAll('.hover-square');
+        // Anime les mots pour flotter doucement, avec un contrôle précis sur x et y
+        words.forEach(({ text, x, y }) => {
+            function floatText() {
+                const xOffset = (Math.random() - 0.5) * 30;
+                const yOffset = (Math.random() - 0.5) * 30;
 
-        squares.forEach(square => {
-            square.addEventListener('mouseover', () => {
-                // Sélection aléatoire des mots à mettre en évidence (environ 30%)
-                const selectedWords = getRandomWords(0.4); // Ajusté à 40% pour une meilleure visibilité
-
-                // Appliquer les animations avec GSAP
-                selectedWords.each(function() {
-                    gsap.to(this, {
-                        scale: 1.3,
-                        duration: 0.3,
-                        ease: "power2.out",
-                        onStart: () => d3.select(this).classed("highlighted", true)
-                    });
+                // Utilise gsap pour modifier directement les attributs SVG "x" et "y"
+                gsap.to(text.node(), {
+                    attr: { 
+                        x: x + xOffset, 
+                        y: y + yOffset 
+                    },
+                    duration: 3 + Math.random() * 2,
+                    onComplete: floatText,
+                    ease: "sine.inOut"
                 });
+            }
+            floatText();
+        });
+
+        // Carrés et animation de surbrillance des mots-clés au survol
+        document.querySelectorAll('.hover-square').forEach(square => {
+            square.addEventListener('mouseover', () => {
+                // Choisir aléatoirement des mots-clés
+                const selectedWords = svg.selectAll("text")
+                    .filter(() => Math.random() < 0.3); // Prends environ 30% des mots
+
+                // Animation avec GSAP pour zoomer et surligner les mots
+                gsap.to(selectedWords.nodes(), {scale: 1.6, duration: 0.3, ease: "power2.inOut"});
+                gsap.to(selectedWords.nodes(), {filter: "drop-shadow(0 0 10px #fff)", duration: 0.3, ease: "power2.inOut"});
             });
 
             square.addEventListener('mouseout', () => {
-                // Réinitialiser toutes les animations
-                wordElements.each(function() {
-                    gsap.to(this, {
-                        scale: 1,
-                        duration: 0.3,
-                        ease: "power2.out",
-                        onComplete: () => d3.select(this).classed("highlighted", false)
-                    });
-                });
+                const allWords = svg.selectAll("text");
+                gsap.to(allWords.nodes(), {scale: 1, duration: 0.3, ease: "power2.inOut"});
+                gsap.to(allWords.nodes(), {filter: "drop-shadow(0 0 5px rgba(0, 255, 255, 0.8))", duration: 0.3, ease: "power2.inOut"});
             });
         });
-
-        // Adaptation du SVG à la taille de la fenêtre
-        window.addEventListener('resize', () => {
-            const newWidth = window.innerWidth;
-            const newHeight = window.innerHeight * 0.8;
-            svg.attr("width", newWidth).attr("height", newHeight);
-
-            // Repositionnement des filaments lumineux
-            svg.selectAll("line")
-                .attr("x1", () => Math.random() * newWidth)
-                .attr("y1", () => Math.random() * newHeight)
-                .attr("x2", () => Math.random() * newWidth)
-                .attr("y2", () => Math.random() * newHeight);
-
-            // Repositionnement des mots
-            wordElements
-                .attr("x", () => Math.random() * (newWidth - 100) + 50)
-                .attr("y", () => Math.random() * (newHeight - 50) + 50);
-        });
     </script>
+
 </body>
 </html>
